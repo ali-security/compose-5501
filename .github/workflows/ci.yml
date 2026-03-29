@@ -152,7 +152,9 @@ jobs:
           VERSION=$(apt-cache madison docker-ce | grep "${{ matrix.engine }}" | head -1 | awk '{print $3}')
           sudo apt-get install -y docker-ce="$VERSION" docker-ce-cli="$VERSION" containerd.io
       - name: Check Docker Version
-        run: docker --version
+        run: |
+          docker --version
+          echo "DOCKER_API_VERSION=$(docker version --format '{{.Server.APIVersion}}')" >> $GITHUB_ENV
       -
         name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
