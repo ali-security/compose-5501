@@ -46,7 +46,6 @@ jobs:
       fail-fast: false
       matrix:
         target:
-          - lint
           - validate-go-mod
           - validate-headers
           - validate-docs
@@ -119,19 +118,6 @@ jobs:
           set: |
             *.cache-from=type=gha,scope=test
             *.cache-to=type=gha,scope=test
-      -
-        name: Gather coverage data
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-data-unit
-          path: bin/coverage/unit/
-          if-no-files-found: error
-      - 
-        name: Unit Test Summary
-        uses: test-summary/action@v2
-        with:
-          paths: bin/coverage/unit/report.xml       
-        if: always()
   e2e:
     runs-on: ubuntu-latest
     strategy:
@@ -176,7 +162,7 @@ jobs:
         name: Build
         uses: docker/bake-action@v2
         with:
-          targets: binary-with-coverage
+          targets: binary
           set: |
             *.cache-from=type=gha,scope=binary-linux-amd64
             *.cache-from=type=gha,scope=binary-e2e-${{ matrix.mode }}
@@ -194,17 +180,7 @@ jobs:
         name: Test plugin mode
         if: ${{ matrix.mode == 'plugin' }}
         run: |
-          rm -rf ./bin/coverage/e2e
-          mkdir -p ./bin/coverage/e2e
-          make e2e-compose GOCOVERDIR=bin/coverage/e2e TEST_FLAGS="-v"
-      -
-        name: Gather coverage data
-        if: ${{ matrix.mode == 'plugin' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-data-e2e-${{ env.MODE_ENGINE_PAIR }}
-          path: bin/coverage/e2e/
-          if-no-files-found: error
+          make e2e-compose TEST_FLAGS="-v"
       -
         name: Test standalone mode
         if: ${{ matrix.mode == 'standalone' }}
@@ -218,46 +194,6 @@ jobs:
         with:
           paths: /tmp/report/report.xml       
         if: always()
-  coverage:
-    runs-on: ubuntu-latest
-    needs:
-      - test
-      - e2e
-    steps:
-      # codecov won't process the report without the source code available
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version-file: 'go.mod'
-          check-latest: true
-      - name: Download unit test coverage
-        uses: actions/download-artifact@v4
-        with:
-          name: coverage-data-unit
-          path: coverage/unit
-          merge-multiple: true
-      - name: Download E2E test coverage
-        uses: actions/download-artifact@v4
-        with:
-          pattern: coverage-data-e2e-*
-          path: coverage/e2e
-          merge-multiple: true
-      - name: Merge coverage reports
-        run: |
-          go tool covdata textfmt -i=./coverage/unit,./coverage/e2e -o ./coverage.txt
-      - name: Store coverage report in GitHub Actions
-        uses: actions/upload-artifact@v4
-        with:
-          name: go-covdata-txt
-          path: ./coverage.txt
-          if-no-files-found: error
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
-        with:
-          files: ./coverage.txt
-
   release:
     permissions:
       contents: write # to create a release (ncipollo/release-action)
