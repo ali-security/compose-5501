@@ -38,6 +38,7 @@ func TestComposeRunDdev(t *testing.T) {
 	if runtime.GOOS == "windows" {
 		t.Skip("Running on Windows. Skipping...")
 	}
+	t.Skip("drud/ddev-webserver image was removed from Docker Hub in November 2024 (drud org retired)")
 
 	// ddev shells out to `docker` and `docker-compose` (standalone), so a
 	// temporary directory is created with symlinks to system Docker and the
