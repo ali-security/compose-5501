@@ -246,6 +246,10 @@ func (c *CLI) BaseEnvironment() []string {
 		env = append(env, "DOCKER_CONTEXT="+dockerContextEnv)
 	}
 
+	if dockerAPIVersion, ok := os.LookupEnv("DOCKER_API_VERSION"); ok {
+		env = append(env, "DOCKER_API_VERSION="+dockerAPIVersion)
+	}
+
 	if coverdir, ok := os.LookupEnv("GOCOVERDIR"); ok {
 		_, filename, _, _ := runtime.Caller(0)
 		root := filepath.Join(filepath.Dir(filename), "..", "..")
