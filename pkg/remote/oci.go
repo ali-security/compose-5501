@@ -45,8 +45,8 @@ const (
 // validatePathInBase ensures a file path is contained within the base directory,
 // as OCI artifacts resources must all live within the same folder.
 func validatePathInBase(base, unsafePath string) error {
-	// Reject paths with path separators regardless of OS
-	if strings.ContainsAny(unsafePath, "\\/") {
+	// Reject paths with backslash separators (Windows-style) regardless of OS
+	if strings.ContainsAny(unsafePath, "\\") {
 		return fmt.Errorf("invalid OCI artifact")
 	}
 
